@@ -67,13 +67,13 @@ class Model340(TemperatureController, Model340Enums):
                  timeout: float = 2.0,
                  ip_address: None = None, # Not supported on 340
                  tcp_port: None = None, # Not supported on 340
-                 **kwargs):
+                 ):
         
         # Set instance value of vid_pid since this can change across 340s (as opposed to being the same
         # for other devices)
         self.vid_pid = [(vid, pid)]
 
         # Call the parent init, then fill in values specific to the 340
-        TemperatureController.__init__(self, serial_number, com_port, baud_rate, timeout, ip_address,
-                                       tcp_port, **kwargs)
+        TemperatureController.__init__(self, serial_number=serial_number, com_port=com_port, timeout=timeout, baud_rate=baud_rate, ip_address=ip_address,
+                                       tcp_port=tcp_port)
     
