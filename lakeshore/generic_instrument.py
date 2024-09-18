@@ -10,6 +10,7 @@ from time import sleep
 
 import serial
 from serial.tools.list_ports import comports
+from serial import SerialException
 
 
 class InstrumentException(Exception):
@@ -240,36 +241,44 @@ class GenericInstrument:
                     stop_bits=None, parity=None, timeout=None, handshaking=None, flow_control=None):
         """Establish a serial USB connection."""
 
-        # Scan the ports for devices matching the VID and PID combos of the instrument
-        for port in comports():
-            if (port.vid, port.pid) in self.vid_pid:
-                # If the com port argument is passed, check for a match
-                if port.device == com_port or com_port is None:
-                    # If the serial number argument is passed, check for a match
-                    if port.serial_number == serial_number or serial_number is None:
-                        # Establish a connection with device using the instrument's serial communications parameters
-                        self.device_serial = serial.Serial(port.device,
-                                                           baudrate=baud_rate,
-                                                           bytesize=data_bits,
-                                                           stopbits=stop_bits,
-                                                           xonxoff=handshaking,
-                                                           timeout=timeout,
-                                                           parity=parity,
-                                                           rtscts=flow_control)
+        if com_port is None and serial_number is None:
+            raise InstrumentException("No serial connections found. Need com_port and/or serial number.")
+        
+        # Trusting caller input, will catch at Serial device creation
+        # Prefer com_port over serial/PID/VID match.
+        elif com_port:
+            pass 
+        
+        # If no com_port, need to match a given device serial with the appropriate PID/VID combo
+        # to be sure which device we're communicating with
+        elif not com_port and serial_number:
+            ports = comports()
+            while com_port is None and len(ports) >= 1:
+                port = ports.pop() # Consume the comports() iterator
+                if (port.vid, port.pid) in self.vid_pid and port.serial_number == serial_number:
+                    com_port = port.device
+                if len(ports) == 0:
+                    raise InstrumentException('No matching serial and PID/VID combination found.')
+        
+        # Since trusting caller on com_port, need to catch on ports that do not exist.
+        try:
+            self.device_serial = serial.Serial(com_port,
+                                               baudrate=baud_rate,
+                                               bytesize=data_bits,
+                                               stopbits=stop_bits,
+                                               xonxoff=handshaking,
+                                               timeout=timeout,
+                                               parity=parity,
+                                               rtscts=flow_control)
 
-                        # Send the instrument a line break, wait 100ms, and clear the input buffer so that
-                        # any leftover communications from a prior session don't gum up the works
-                        self.device_serial.write(b'\n')
-                        sleep(0.1)
-                        self.device_serial.reset_input_buffer()
+            # Send the instrument a line break, wait 100ms, and clear the input buffer so that
+            # any leftover communications from a prior session don't gum up the works
+            self.device_serial.write(b'\n')
+            sleep(0.1)
+            self.device_serial.reset_input_buffer()
 
-                        break
-        else:
-            if com_port is None and serial_number is None:
-                raise InstrumentException("No serial connections found")
-
-            raise InstrumentException(
-                "No serial connections found with a matching COM port and/or matching serial number")
+        except SerialException as e:
+            raise InstrumentException(e)
 
     def disconnect_usb(self):
         """Disconnect the USB connection."""
