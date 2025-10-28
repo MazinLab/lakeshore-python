@@ -97,7 +97,7 @@ class Model370(TemperatureController, Model370Enums):
                 Selects the channel to retrieve measurement.
 
         """
-        return float(self.query(f"RDGK? {input_channel}"))
+        return float(self.query(f"RDGK? {input_channel}", check_errors=False))
 
     def get_sensor_reading(self, input_channel):
         """Returns the sensor reading in Ohms.
@@ -107,4 +107,4 @@ class Model370(TemperatureController, Model370Enums):
                 The raw sensor reading in the units of the connected sensor.
 
         """
-        return float(self.query(f"RDGR? {input_channel}"))
+        return float(self.query(f"RDGR? {input_channel}", check_errors=False))
