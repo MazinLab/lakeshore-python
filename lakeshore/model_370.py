@@ -1,5 +1,5 @@
 """Implements functionality unique to the Lake Shore Model 370 AC bridge and temperature controller.
-NOTE: This is an incomplete implmentation that only supports serial. The available API for the 370 is also
+NOTE: This is an incomplete implementation that only supports serial. The available API for the 370 is also
 only minimally supported.
 """
 
