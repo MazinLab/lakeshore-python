@@ -39,6 +39,7 @@ from .model_336 import Model336
 from .model_350 import Model350
 from .model_370 import Model370
 from .model_372 import *
+from .model_340 import *
 from .model_425 import Model425
 from .ssm_system import (
     SSMSystem,
